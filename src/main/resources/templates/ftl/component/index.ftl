@@ -1,0 +1,16 @@
+<#include "ftl/component/text.ftl"/>
+<#include "ftl/component/number.ftl"/>
+<#include "ftl/component/select.ftl"/>
+<#include "ftl/component/radio.ftl"/>
+<#include "ftl/component/checkbox.ftl"/>
+<#include "ftl/component/checkboxlist.ftl"/>
+<#include "ftl/component/textarea.ftl"/>
+<#include "ftl/component/hidden.ftl"/>
+<#include "ftl/component/file.ftl"/>
+<#include "ftl/component/table.ftl"/>
+<#include "ftl/component/table_big.ftl"/>
+<#include "ftl/component/table-column.ftl"/>
+<#include "ftl/component/button.ftl"/>
+<#include "ftl/component/password.ftl"/>
+<#include "ftl/component/editor.ftl"/>
+<#include "ftl/component/form.ftl"/>

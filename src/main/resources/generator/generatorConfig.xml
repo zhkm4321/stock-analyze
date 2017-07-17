@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+
+<generatorConfiguration>
+  <properties resource="application.properties" />
+
+  <context id="Mysql" targetRuntime="MyBatis3Simple" defaultModelType="flat">
+    <property name="beginningDelimiter" value="`" />
+    <property name="endingDelimiter" value="`" />
+
+    <plugin type="tk.mybatis.mapper.generator.MapperPlugin">
+      <property name="mappers" value="com.sword.springboot.util.SAMapper" />
+    </plugin>
+
+    <jdbcConnection driverClass="com.mysql.jdbc.Driver" connectionURL="jdbc:mysql://10.10.50.57:3305/stock_db"
+      userId="zhenghang" password="zhenghang">
+    </jdbcConnection>
+
+    <javaModelGenerator targetPackage="com.sword.springboot.model" targetProject="src/main/java" />
+
+    <sqlMapGenerator targetPackage="mapper" targetProject="src/main/resources" />
+
+    <javaClientGenerator targetPackage="com.sword.springboot.mapper"
+      targetProject="src/main/java" type="XMLMAPPER" />
+
+    <!--mysql 配置 <table tableName="%"> <generatedKey column="id" sqlStatement="Mysql" identity="true" 
+      /> -->
+    <!--oracle 配置 -->
+    <!--<generatedKey column="id" sqlStatement="select SEQ_{1}.nextval from dual" identity="false" type="pre"/> -->
+    <!--</table> -->
+    <table tableName="tb_user" domainObjectName="TbUser"
+      enableCountByExample="true" enableUpdateByExample="true" enableDeleteByExample="true"
+      enableSelectByExample="true">
+    </table>
+    <!--
+    <table tableName="tb_stocks" domainObjectName="TbStocks"
+      enableCountByExample="true" enableUpdateByExample="true" enableDeleteByExample="true"
+      enableSelectByExample="true">
+    </table>-->
+  </context>
+</generatorConfiguration>
