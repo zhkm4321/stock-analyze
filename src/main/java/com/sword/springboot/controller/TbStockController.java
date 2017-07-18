@@ -24,19 +24,31 @@
 
 package com.sword.springboot.controller;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.github.pagehelper.PageInfo;
 import com.sword.springboot.model.TbStocks;
 import com.sword.springboot.service.TbStockService;
+import com.sword.springboot.util.AjaxRespUtils;
+import com.sword.springboot.util.HttpClientUtils;
+import com.sword.springboot.util.RegxUtils;
 
 /**
  * @author liuzh
@@ -49,8 +61,17 @@ public class TbStockController {
   @Autowired
   private TbStockService stockSvc;
 
-  @RequestMapping
-  public ModelAndView getAll(TbStocks stock) {
+  @GetMapping
+  public ModelAndView listAll(TbStocks stock) {
+    ModelAndView result = new ModelAndView("index");
+    List<TbStocks> stockList = stockSvc.getAll(stock);
+    result.addObject("pageInfo", new PageInfo<TbStocks>(stockList));
+    result.addObject("queryBean", stock);
+    return result;
+  }
+
+  @PostMapping
+  public ModelAndView postListAll(TbStocks stock) {
     ModelAndView result = new ModelAndView("index");
     List<TbStocks> stockList = stockSvc.getAll(stock);
     result.addObject("pageInfo", new PageInfo<TbStocks>(stockList));
@@ -85,9 +106,57 @@ public class TbStockController {
   public ModelAndView save(TbStocks bean) {
     ModelAndView result = new ModelAndView("view");
     String msg = bean.getId() == null ? "新增成功!" : "更新成功!";
-    stockSvc.save(bean);
+    stockSvc.saveOrUpdate(bean);
     result.addObject("country", bean);
     result.addObject("msg", msg);
     return result;
   }
+
+  /**
+   * 深圳上海股票
+   */
+  @GetMapping("/refresh")
+  @ResponseBody
+  public String stockList() {
+    String url = "http://quote.eastmoney.com/stock_list.html";// 请求接口地址
+    try {
+      String html = HttpClientUtils.sendHttpGet(url, null, "gb2312");
+      Document doc = Jsoup.parse(html);
+      Elements listDiv = doc.select("div[id=quotesearch]");
+      Elements ul = listDiv.select("ul");
+      String code = null;
+      List<TbStocks> stockList = new ArrayList<TbStocks>();
+      String contentText = null;
+      String exchange = null;// 交易所类型
+      for (int i = 0; i < ul.size(); i++) {
+        Elements liCol = ul.get(i).select("li");
+        if (i == 0) {
+          exchange = "sh";
+        } else {
+          exchange = "sz";
+        }
+        for (Iterator<Element> it = liCol.iterator(); it.hasNext();) {
+          Element element = (Element) it.next();
+          contentText = element.text();
+          code = RegxUtils.getParenthesesContent(contentText);
+          if (code.startsWith("0") || code.startsWith("7") || code.startsWith("6") || code.startsWith("3")
+              || code.startsWith("2")) {
+            TbStocks stocks = new TbStocks();
+            stocks.setCode(code);
+            stocks.setStockName(contentText.substring(0, contentText.indexOf("(")));
+            stocks.setStockExchange(exchange);
+            stockList.add(stocks);
+          }
+        }
+      }
+      for (Iterator<TbStocks> iterator = stockList.iterator(); iterator.hasNext();) {
+        TbStocks stocks = (TbStocks) iterator.next();
+        stockSvc.saveOrUpdate(stocks);
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return AjaxRespUtils.renderSuccess("刷新成功");
+  }
+
 }

@@ -1,7 +1,10 @@
 package com.sword.springboot.util;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -9,6 +12,7 @@ import javax.net.ssl.SSLContext;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
+import org.apache.http.ParseException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -39,7 +43,7 @@ import com.alibaba.fastjson.JSONObject;
 public class HttpClientUtils {
 
   private HttpClientUtils() {
-    throw new IllegalAccessError("工具类不能实例化");
+    throw new IllegalAccessError("HttpClientUtils工具类不能实例化");
   }
 
   private static PoolingHttpClientConnectionManager connectionManager = null;
@@ -61,11 +65,6 @@ public class HttpClientUtils {
     connectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
     connectionManager.setMaxTotal(1000);
     connectionManager.setDefaultMaxPerRoute(200);// 每个路由最大的请求数量
-    // httpClientBuilder =
-    // HttpClients.custom().setConnectionManager(connectionManager).setDefaultRequestConfig(requestConfig);
-    // HttpHost localhost = new HttpHost("http://www.baidu.com",80);
-    // connectionManager.setMaxPerRoute(new HttpRoute(localhost), 200);
-
   }
 
   /**
@@ -83,15 +82,15 @@ public class HttpClientUtils {
    * @param sslContext
    * @return
    */
-  public static CloseableHttpClient getHttpClient(SSLContext sslContext) {
+  private static CloseableHttpClient getHttpClient(SSLContext sslContext) {
     return getHttpClientBuilder(sslContext).build();
   }
 
-  public static HttpClientBuilder getHttpClientBuilder() {
+  private static HttpClientBuilder getHttpClientBuilder() {
     return HttpClients.custom().setConnectionManager(connectionManager).setDefaultRequestConfig(requestConfig);
   }
 
-  public static HttpClientBuilder getHttpClientBuilder(SSLContext sslContext) {
+  private static HttpClientBuilder getHttpClientBuilder(SSLContext sslContext) {
     if (sslContext != null) {
       return getHttpClientBuilder().setSSLContext(sslContext);
     } else {
@@ -273,7 +272,7 @@ public class HttpClientUtils {
    * @param httpPost
    * @return
    */
-  public static String sendHttpPost(HttpPost httpPost) {
+  private static String sendHttpPost(HttpPost httpPost) {
     return sendHttpPost(httpPost, null);
   }
 
@@ -285,7 +284,7 @@ public class HttpClientUtils {
    *          ssl证书信息
    * @return
    */
-  public static String sendHttpPost(HttpPost httpPost, SSLContext sslConext) {
+  private static String sendHttpPost(HttpPost httpPost, SSLContext sslConext) {
     CloseableHttpClient httpClient = getHttpClient(sslConext);
     CloseableHttpResponse response = null;
     HttpEntity entity = null;
@@ -321,19 +320,8 @@ public class HttpClientUtils {
    * 
    * @param httpUrl
    */
-  public static String sendHttpGet(String httpUrl) {
-    HttpGet httpGet = new HttpGet(httpUrl);// 创建get请求
-    return sendHttpGet(httpGet);
-  }
-
-  /**
-   * 发送 get请求
-   * 
-   * @param httpUrl
-   */
-  public static <T> T sendHttpGet(String httpUrl, Class<T> t) {
-    HttpGet httpGet = new HttpGet(httpUrl);// 创建get请求
-    String json = sendHttpGet(httpGet);
+  public static <T> T sendHttpGet(String httpUrl, Map<String, String> maps, Class<T> t, String charset) {
+    String json = HttpClientUtils.sendHttpGet(httpUrl, maps, charset);
     LoggerUtils.debug(HttpClientUtils.class, "httpget_url:" + httpUrl);
     LoggerUtils.debug(HttpClientUtils.class, "httpget_ret:" + json);
     return JSONObject.parseObject(json, t);
@@ -346,9 +334,30 @@ public class HttpClientUtils {
    * @param sslContext
    *          ssl证书信息
    */
-  public static String sendHttpGet(String httpUrl, SSLContext sslConext) {
-    HttpGet httpGet = new HttpGet(httpUrl);// 创建get请求
-    return sendHttpGet(httpGet, sslConext);
+  public static String sendHttpGet(String httpUrl, Map<String, String> maps, String charset) {
+    HttpGet httpGet = null;
+    if (null != maps && maps.size() > 0) {
+      List<NameValuePair> params = new ArrayList<NameValuePair>();
+      for (Iterator<String> it = maps.keySet().iterator(); it.hasNext();) {
+        String key = (String) it.next();
+        params.add(new BasicNameValuePair(key, maps.get(key)));
+      }
+      // 添加参数
+      String str = null;
+      try {
+        str = EntityUtils.toString(new UrlEncodedFormEntity(params, "UTF-8"));
+      } catch (ParseException e) {
+        e.printStackTrace();
+      } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+      httpGet = new HttpGet(httpUrl + '?' + str);// 创建get请求
+    } else {
+      httpGet = new HttpGet(httpUrl);// 创建get请求
+    }
+    return sendHttpGet(httpGet, null, charset);
   }
 
   /**
@@ -357,8 +366,8 @@ public class HttpClientUtils {
    * @param httpPost
    * @return
    */
-  public static String sendHttpGet(HttpGet httpGet) {
-    return sendHttpGet(httpGet, null);
+  private static String sendHttpGet(HttpGet httpGet, String charset) {
+    return sendHttpGet(httpGet, null, charset);
   }
 
   /**
@@ -369,7 +378,7 @@ public class HttpClientUtils {
    *          ssl证书信息
    * @return
    */
-  public static String sendHttpGet(HttpGet httpGet, SSLContext sslConext) {
+  private static String sendHttpGet(HttpGet httpGet, SSLContext sslConext, String charset) {
     CloseableHttpClient httpClient = getHttpClient(sslConext);
     CloseableHttpResponse response = null;
     HttpEntity entity = null;
@@ -378,7 +387,7 @@ public class HttpClientUtils {
       // 执行请求
       response = httpClient.execute(httpGet);
       entity = response.getEntity();
-      responseContent = EntityUtils.toString(entity, "UTF-8");
+      responseContent = EntityUtils.toString(entity, charset);
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
     } finally {

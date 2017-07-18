@@ -13,11 +13,13 @@ public class WebContextInterceptor implements HandlerInterceptor {
 
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-    Object userDetails = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    if (null != userDetails) {
-      if (userDetails instanceof SecurityUser) {
-        SecurityUser user = (SecurityUser) userDetails;
-        request.setAttribute("curuser", user);
+    if (null != SecurityContextHolder.getContext().getAuthentication()) {
+      Object userDetails = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+      if (null != userDetails) {
+        if (userDetails instanceof SecurityUser) {
+          SecurityUser user = (SecurityUser) userDetails;
+          request.setAttribute("curuser", user);
+        }
       }
     }
     // 获取session

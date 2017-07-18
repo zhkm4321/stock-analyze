@@ -1,16 +1,11 @@
 package com.sword.springboot.model;
 
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Table(name = "tb_user")
 public class TbUser extends BaseEntity {
   @Id
-  @Column(name = "id")
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
 
   /**

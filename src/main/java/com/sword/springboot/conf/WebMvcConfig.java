@@ -45,8 +45,8 @@ import org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver;
 import com.sword.springboot.interceptor.WebContextInterceptor;
 
 /**
- * @author liuzh
- * @since 2015-12-19 16:16
+ * @author zhenghang
+ * @since 2017-06-19 16:16
  */
 @Configuration
 public class WebMvcConfig extends WebMvcConfigurerAdapter {

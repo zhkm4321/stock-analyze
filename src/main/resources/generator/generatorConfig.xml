@@ -29,15 +29,15 @@
       /> -->
     <!--oracle 配置 -->
     <!--<generatedKey column="id" sqlStatement="select SEQ_{1}.nextval from dual" identity="false" type="pre"/> -->
-    <!--</table> -->
+    <!--</table> 
     <table tableName="tb_user" domainObjectName="TbUser"
       enableCountByExample="true" enableUpdateByExample="true" enableDeleteByExample="true"
       enableSelectByExample="true">
-    </table>
-    <!--
+    </table>-->
+    <!---->
     <table tableName="tb_stocks" domainObjectName="TbStocks"
       enableCountByExample="true" enableUpdateByExample="true" enableDeleteByExample="true"
       enableSelectByExample="true">
-    </table>-->
+    </table>
   </context>
 </generatorConfiguration>

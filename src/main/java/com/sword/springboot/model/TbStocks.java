@@ -7,8 +7,10 @@ import javax.persistence.Table;
 @Table(name = "tb_stocks")
 public class TbStocks extends BaseEntity {
   @Id
+  @Column(name = "id")
   private Integer id;
 
+  @Column(name = "code")
   private String code;
 
   @Column(name = "stock_exchange")
