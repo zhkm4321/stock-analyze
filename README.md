@@ -1,6 +1,6 @@
 # Spring Boot 集成 MyBatis, 分页插件 PageHelper, 通用 Mapper 
 
-- [Spring Boot 1.5.1.RELEASE](https://github.com/spring-projects/spring-boot)
+- [Spring Boot 1.5.4.RELEASE](https://github.com/spring-projects/spring-boot)
 - [mybatis-spring-boot-starter](https://github.com/mybatis/spring-boot-starter)
 - [mapper-spring-boot-starter](https://github.com/abel533/mapper-boot-starter)
 - [pagehelper-spring-boot-starter](https://github.com/pagehelper/pagehelper-spring-boot)
@@ -11,7 +11,7 @@
 <dependency>
     <groupId>org.mybatis.spring.boot</groupId>
     <artifactId>mybatis-spring-boot-starter</artifactId>
-    <version>1.1.1</version>
+    <version>1.3.0</version>
 </dependency>
 <!--mapper-->
 <dependency>
@@ -23,12 +23,10 @@
 <dependency>
     <groupId>com.github.pagehelper</groupId>
     <artifactId>pagehelper-spring-boot-starter</artifactId>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 ## Spring DevTools 配置
-感谢[emf1002](https://github.com/emf1002)提供的解决方案。
-
 在使用 DevTools 时，通用Mapper经常会出现 class x.x.A cannot be cast to x.x.A。
 
 同一个类如果使用了不同的类加载器，就会产生这样的错误，所以解决方案就是让通用Mapper和实体类使用相同的类加载器即可。
