@@ -29,14 +29,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     http.authorizeRequests().antMatchers(new String[] { "/favicon.ico", "/static/**", "/login", "/regist" }).permitAll()// 访问：/login
         // 无需登录认证权限
         .anyRequest().authenticated() // 其他所有资源都需要认证，登陆后访问
-        .antMatchers("/stocks").hasAuthority("admin") // 登陆后之后拥有“admin”权限才可以访问/login方法，否则系统会出现“403”权限不足的提示
+         // 登陆后之后拥有“admin”权限才可以访问/login方法，否则系统会出现“403”权限不足的提示
         .and().formLogin().loginPage("/login")// 指定登录页是”/login”
         .permitAll().successHandler(loginSuccessHandler()).failureHandler(loginFailHandler()) // 登录成功后可使用loginSuccessHandler()存储用户信息，可选。
         .and().logout().logoutSuccessUrl("/login") // 退出登录后的默认网址是”/home”
         .permitAll().invalidateHttpSession(true).and().rememberMe()// 登录后记住用户，下次自动登录,数据库中必须存在名为persistent_logins的表
         .tokenValiditySeconds(1209600);
     // 如果有需要取消csrf的就可以参考这里的配置
-    // http.csrf().ignoringAntMatchers("/regist");
+    http.csrf().ignoringAntMatchers("/druid/**");
     http.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
     http.logout().logoutRequestMatcher(new AntPathRequestMatcher("/logout"));
   }

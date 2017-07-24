@@ -12,21 +12,42 @@ import org.apache.commons.lang.time.DateUtils;
 
 public abstract class DateUtil {
 
-  public static final String DATETIME_FORMAT_PATTERN = "yyyy-MM-dd HH:mm:ss";
+  public static final String YYYY_MM_DD_HH_MM_SS_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
-  public static final String DATE_FORMAT_PATTERN = "yyyy-MM-dd";
+  public static final String YYYY_MM_DD_FORMAT = "yyyy-MM-dd";
 
-  public static final SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_PATTERN);
+  public static final String YYYYMMDD_FORMAT = "yyyyMMdd";
+
+  public static final SimpleDateFormat sdf = new SimpleDateFormat(YYYY_MM_DD_FORMAT);
+
+  public static final SimpleDateFormat sdf2 = new SimpleDateFormat(YYYYMMDD_FORMAT);
 
   public static Date time() {
     return Calendar.getInstance().getTime();
   }
 
-  public static String getDateStr() {
-    Date date = Calendar.getInstance().getTime();
-    return sdf.format(date);
+  public static String getDateStr(Date date, String dateFormat) throws IllegalArgumentException {
+    if(null==date){
+      date = Calendar.getInstance().getTime();
+    }
+    if (StringUtils.isNotBlank(dateFormat) && dateFormat.equals(YYYYMMDD_FORMAT)) {
+      return sdf2.format(date);
+    } else if (StringUtils.isNotBlank(dateFormat) && dateFormat.equals(YYYYMMDD_FORMAT)) {
+      return sdf.format(date);
+    } else {
+      try {
+        SimpleDateFormat _sdf = new SimpleDateFormat(dateFormat);
+        return _sdf.format(date);
+      } catch (Exception e) {
+        throw new IllegalArgumentException("日期格式不支持", e);
+      }
+    }
   }
-
+  
+  public static String getDateStr(String dateFormat) throws IllegalArgumentException {
+    return getDateStr(null, dateFormat);
+  }
+  
   /**
    * 获取上个月的时间段
    */
@@ -86,21 +107,18 @@ public abstract class DateUtil {
     try {
       startDate = sdf1.parse(startDateStr);
       endDate = sdf1.parse(endDateStr);
-    } catch (ParseException e) {
-    }
+    } catch (ParseException e) {}
     if (null == startDate) {
       try {
         startDate = sdf2.parse(startDateStr);
         endDate = sdf2.parse(endDateStr);
-      } catch (ParseException e) {
-      }
+      } catch (ParseException e) {}
     }
     if (null == startDate) {
       try {
         startDate = sdf3.parse(startDateStr);
         endDate = sdf3.parse(endDateStr);
-      } catch (ParseException e) {
-      }
+      } catch (ParseException e) {}
     }
     if (null == startDate) {
       try {
@@ -134,8 +152,7 @@ public abstract class DateUtil {
       try {
         startDate = sdf1.parse(startDateStr);
         endDate = sdf1.parse(endDateStr);
-      } catch (ParseException e) {
-      }
+      } catch (ParseException e) {}
     }
 
     startDate = DateUtils.truncate(startDate, Calendar.DAY_OF_MONTH);

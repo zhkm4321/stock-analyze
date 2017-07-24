@@ -24,7 +24,11 @@
 
 package com.sword.springboot.controller;
 
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
 
@@ -45,8 +49,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.github.pagehelper.PageInfo;
 import com.sword.springboot.model.TbStocks;
-import com.sword.springboot.service.TbStockService;
+import com.sword.springboot.service.TbStocksService;
 import com.sword.springboot.util.AjaxRespUtils;
+import com.sword.springboot.util.DateUtil;
 import com.sword.springboot.util.HttpClientUtils;
 import com.sword.springboot.util.RegxUtils;
 
@@ -59,12 +64,12 @@ import com.sword.springboot.util.RegxUtils;
 public class TbStockController {
 
   @Autowired
-  private TbStockService stockSvc;
+  private TbStocksService stockSvc;
 
   @GetMapping
   public ModelAndView listAll(TbStocks stock) {
     ModelAndView result = new ModelAndView("index");
-    List<TbStocks> stockList = stockSvc.getAll(stock);
+    List<TbStocks> stockList = stockSvc.selectByExample(stock);
     result.addObject("pageInfo", new PageInfo<TbStocks>(stockList));
     result.addObject("queryBean", stock);
     return result;
@@ -73,7 +78,7 @@ public class TbStockController {
   @PostMapping
   public ModelAndView postListAll(TbStocks stock) {
     ModelAndView result = new ModelAndView("index");
-    List<TbStocks> stockList = stockSvc.getAll(stock);
+    List<TbStocks> stockList = stockSvc.selectByExample(stock);
     result.addObject("pageInfo", new PageInfo<TbStocks>(stockList));
     result.addObject("queryBean", stock);
     return result;
@@ -139,8 +144,7 @@ public class TbStockController {
           Element element = (Element) it.next();
           contentText = element.text();
           code = RegxUtils.getParenthesesContent(contentText);
-          if (code.startsWith("0") || code.startsWith("7") || code.startsWith("6") || code.startsWith("3")
-              || code.startsWith("2")) {
+          if (code.startsWith("0") || code.startsWith("7") || code.startsWith("6") || code.startsWith("3")) {
             TbStocks stocks = new TbStocks();
             stocks.setCode(code);
             stocks.setStockName(contentText.substring(0, contentText.indexOf("(")));
@@ -157,6 +161,35 @@ public class TbStockController {
       e.printStackTrace();
     }
     return AjaxRespUtils.renderSuccess("刷新成功");
+  }
+  @GetMapping("/detail/{code}")
+  public ModelAndView showDetail(@PathVariable String code){
+    ModelAndView result = new ModelAndView("detail");
+    TbStocks stock = stockSvc.redisGetStock(code);
+    result.addObject("bean", stock);
+    Date nowDate = new Date();
+    Calendar cal = new GregorianCalendar();
+    cal.setTime(nowDate);
+    cal.add(Calendar.DAY_OF_YEAR, -60);
+    Date[] dateRange = new Date[]{cal.getTime(), nowDate};
+    result.addObject("queryBean", dateRange);
+    return result;
+  }
+  
+  @PostMapping("/detail/{code}")
+  public ModelAndView postDetail(@PathVariable String code, String startDate, String endDate){
+    ModelAndView result = new ModelAndView("detail");
+    TbStocks stock = stockSvc.redisGetStock(code);
+    result.addObject("bean", stock);
+    Date[] dateRange = new Date[2];
+    try {
+      dateRange[0] = DateUtil.sdf2.parse(startDate);
+      dateRange[1] = DateUtil.sdf2.parse(endDate);
+    } catch (ParseException e) {
+      e.printStackTrace();
+    }
+    result.addObject("queryBean", dateRange);
+    return result;
   }
 
 }

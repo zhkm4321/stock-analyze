@@ -10,6 +10,7 @@
     <property name="beginningDelimiter" value="`" />
     <property name="endingDelimiter" value="`" />
 
+    <plugin type="org.mybatis.generator.plugins.CaseInsensitiveLikePlugin"></plugin>
     <plugin type="tk.mybatis.mapper.generator.MapperPlugin">
       <property name="mappers" value="com.sword.springboot.util.SAMapper" />
     </plugin>
@@ -29,15 +30,16 @@
       /> -->
     <!--oracle 配置 -->
     <!--<generatedKey column="id" sqlStatement="select SEQ_{1}.nextval from dual" identity="false" type="pre"/> -->
-    <!--</table> 
-    <table tableName="tb_user" domainObjectName="TbUser"
-      enableCountByExample="true" enableUpdateByExample="true" enableDeleteByExample="true"
-      enableSelectByExample="true">
-    </table>-->
-    <!---->
-    <table tableName="tb_stocks" domainObjectName="TbStocks"
-      enableCountByExample="true" enableUpdateByExample="true" enableDeleteByExample="true"
-      enableSelectByExample="true">
+    <!-- 
+    <table tableName="tb_user" domainObjectName="TbUser" enableCountByExample="true"
+      enableUpdateByExample="true" enableDeleteByExample="true" enableSelectByExample="true">
     </table>
+    <table tableName="tb_stocks" domainObjectName="TbStocks" enableCountByExample="true"
+      enableUpdateByExample="true" enableDeleteByExample="true" enableSelectByExample="true">
+    </table> 
+    <table tableName="tb_stocks_history" domainObjectName="TbStocksHistory" enableCountByExample="true"
+      enableUpdateByExample="true" enableDeleteByExample="true" enableSelectByExample="true">
+    </table>
+    -->
   </context>
 </generatorConfiguration>

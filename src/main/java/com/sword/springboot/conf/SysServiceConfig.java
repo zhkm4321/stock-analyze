@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ContextRefreshedEvent;
 
 import com.github.pagehelper.autoconfigure.MapperAutoConfiguration;
-import com.sword.springboot.service.TbStockService;
+import com.sword.springboot.service.TbStocksService;
 
 /**
  * 系统服务配置类
@@ -20,7 +20,7 @@ import com.sword.springboot.service.TbStockService;
 public class SysServiceConfig implements ApplicationListener<ContextRefreshedEvent> {
 
   @Autowired
-  private TbStockService stockSvc;
+  private TbStocksService stockSvc;
 
   @Override
   public void onApplicationEvent(ContextRefreshedEvent event) {

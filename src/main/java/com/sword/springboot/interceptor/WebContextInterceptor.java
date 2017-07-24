@@ -18,7 +18,9 @@ public class WebContextInterceptor implements HandlerInterceptor {
       if (null != userDetails) {
         if (userDetails instanceof SecurityUser) {
           SecurityUser user = (SecurityUser) userDetails;
-          request.setAttribute("curuser", user);
+          if(null!=user.getId()){
+            request.setAttribute("curuser", user);
+          }
         }
       }
     }

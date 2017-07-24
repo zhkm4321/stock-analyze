@@ -29,18 +29,17 @@
 </head>
 <body>
   <div class="wrapper">
-    <div class="middle">
-      <h1 style="padding: 50px 0 20px;">国家(地区)列表[#if curuser??]${curuser.username!}[/#if]</h1>
-
+    <div class="align_middle">
+      <h1 style="padding: 30px 0 10px;">列表[#if curuser??]${curuser.username!}[/#if]</h1>
       <form action="${request.contextPath}/stocks" method="post">
         <table class="gridtable" style="width: 100%;">
           <tr>
-            <th>国家(地区)名称：</th>
-            <td><input type="text" name="countryname"
-              value="[#if queryParam.countryname??]${queryParam.countryname}[/#if]" /></td>
-            <th>国家(地区)代码：</th>
-            <td><input type="text" name="countrycode"
-              value="[#if queryParam.countrycode??]${queryParam.countrycode}[/#if]" /></td>
+            <th>代码：</th>
+            <td><input type="text" name="code"
+              value="[#if queryBean.code??]${queryBean.code!}[/#if]" /></td>
+            <th>名称：</th>
+            <td><input type="text" name="stockName"
+              value="[#if queryBean.stockName??]${queryBean.stockName!}[/#if]" /></td>
             <td rowspan="2"><input type="submit" value="查询" /></td>
           </tr>
           <tr>
@@ -130,6 +129,7 @@
           </tr>
           <tr>
             <th>ID</th>
+            <th>交易所</th>
             <th>代码</th>
             <th>股票名</th>
             <th>操作</th>
@@ -138,12 +138,13 @@
         <tbody>
           [#list pageInfo.list as queryBean]
           <tr>
-            <td>${queryBean.id}</td>
-            <td>${queryBean.code}</td>
-            <td>${queryBean.stockName}</td>
-            <td style="text-align: center;">[<a
-              href="${request.contextPath}/stocks/view/${queryBean.id}">修改</a>] - [<a
-              href="${request.contextPath}/stocks/delete/${queryBean.id}">删除</a>]
+            <td align="center">${queryBean.id}</td>
+            <td align="center">${queryBean.stockExchange}</td>
+            <td align="center"><a href="${request.contextPath}/stocks/detail/${queryBean.code}">${queryBean.code}</a></td>
+            <td align="center"><a href="${request.contextPath}/stocks/detail/${queryBean.code}">${queryBean.stockName}</a></td>
+            <td style="text-align: center;">
+              [<a href="${request.contextPath}/stocks/view/${queryBean.id}">修改</a>] - 
+              [<a href="${request.contextPath}/stocks/delete/${queryBean.id}">删除</a>]
             </td>
           </tr>
           [/#list]
@@ -153,20 +154,20 @@
         <tr>
           [#if pageInfo.hasPreviousPage]
           <td><a
-            href="${request.contextPath}/stocks?page=1&rows=${pageInfo.pageSize}&countryname=${queryParam.countryname}&countrycode=${queryParam.countrycode}">首页</a>
+            href="${request.contextPath}/stocks?page=1&rows=${pageInfo.pageSize}&stockName=${queryBean.stockName}&code=${queryBean.code}">首页</a>
           </td>
           <td><a
-            href="${request.contextPath}/stocks?page=${pageInfo.prePage}&rows=${pageInfo.pageSize}&countryname=${queryParam.countryname}&countrycode=${queryParam.countrycode}">前一页</a>
+            href="${request.contextPath}/stocks?page=${pageInfo.prePage}&rows=${pageInfo.pageSize}&stockName=${queryBean.stockName}&code=${queryBean.code}">前一页</a>
           </td> [/#if] [#list pageInfo.navigatepageNums as nav] [#if nav == pageInfo.pageNum]
           <td style="font-weight: bold;">${nav}</td> [/#if] [#if nav != pageInfo.pageNum]
           <td><a
-            href="${request.contextPath}/stocks?page=${nav}&rows=${pageInfo.pageSize}&countryname=[#if queryParam.countryname??]${queryParam.countryname}[/#if]&countrycode=[#if queryParam.countrycode??]${queryParam.countrycode}[/#if]">${nav}</a>
+            href="${request.contextPath}/stocks?page=${nav}&rows=${pageInfo.pageSize}&stockName=[#if queryBean.stockName??]${queryBean.stockName}[/#if]&code=[#if queryBean.code??]${queryBean.code}[/#if]">${nav}</a>
           </td> [/#if] [/#list] [#if pageInfo.hasNextPage]
           <td><a
-            href="${request.contextPath}/stocks?page=${pageInfo.nextPage}&rows=${pageInfo.pageSize}&countryname=[#if queryParam.countryname??]${queryParam.countryname}[/#if]&countrycode=[#if queryParam.countrycode??]${queryParam.countrycode}[/#if]">下一页</a>
+            href="${request.contextPath}/stocks?page=${pageInfo.nextPage}&rows=${pageInfo.pageSize}&stockName=[#if queryBean.stockName??]${queryBean.stockName}[/#if]&code=[#if queryBean.code??]${queryBean.code}[/#if]">下一页</a>
           </td>
           <td><a
-            href="${request.contextPath}/stocks?page=${pageInfo.pages}&rows=${pageInfo.pageSize}&countryname=[#if queryParam.countryname??]${queryParam.countryname}[/#if]&countrycode=[#if queryParam.countrycode??]${queryParam.countrycode}[/#if]">尾页</a>
+            href="${request.contextPath}/stocks?page=${pageInfo.pages}&rows=${pageInfo.pageSize}&stockName=[#if queryBean.stockName??]${queryBean.stockName}[/#if]&code=[#if queryBean.code??]${queryBean.code}[/#if]">尾页</a>
           </td> [/#if]
         </tr>
       </table>

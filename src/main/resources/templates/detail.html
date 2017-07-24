@@ -1,0 +1,246 @@
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport"
+  content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0;" />
+<meta name="_csrf" content="${_csrf.token}" />
+<!-- default header name is X-CSRF-TOKEN -->
+<meta name="_csrf_header" content="${_csrf.headerName}" />
+<link type="favicon" rel="shortcut icon" href="${res}/images/favicon.ico" />
+<title>${bean.stockName} - ${bean.code}</title>
+<link href="${request.contextPath}/static/css/style.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+  <div class="wrapper">
+    <div class="align_middle" style="border: 1px solid #d3d3d3">
+      <div id="kChart" style="width: 800px; height: 500px;"></div>
+    </div>
+    <form class="stock_form" action="${request.contextPath}/kline/${bean.code}" method="POST">
+      <input type="hidden" name="startDate" value="${queryBean[0]?string('yyyyMMdd')}">
+      <input type="hidden" name="endDate" value="${queryBean[1]?string('yyyyMMdd')}">
+    </form>
+  </div>
+  <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+  <script type="text/javascript" src="${request.contextPath}/static/js/echarts.min.js"></script>
+  <script type="text/javascript" src="${request.contextPath}/static/js/global.js"></script>
+  <script type="text/javascript">
+      //基于准备好的dom，初始化echarts实例
+      var stockChart = echarts.init(document.getElementById('kChart'));
+      var data = {
+        categoryData : [],
+        values : []
+      }
+      $.formAjax(".stock_form",{
+        async : false,
+        success : function(result){
+          if(result.success){
+            var arr = result.data.lineData;
+            for(var i=0; i<arr.length; i++){
+              var obj = arr[i];
+              data.categoryData.push(obj.jysj.split(" ")[0]);
+              //数据意义：开盘(open)，收盘(close)，最低(lowest)，最高(highest)
+              data.values.push([obj.kpj, obj.spj, obj.zdj, obj.zgj]);
+            }
+          }
+        }
+      });
+      
+      data.categoryData.reverse();
+      data.values.reverse();
+
+      function splitData(rawData) {
+        var categoryData = [];
+        var values = []
+        for (var i = 0; i < rawData.length; i++) {
+          categoryData.push(rawData[i].splice(0, 1)[0]);
+          values.push(rawData[i])
+        }
+        return {
+          categoryData : categoryData,
+          values : values
+        };
+      }
+
+      function calculateMA(dayCount) {
+        var result = [];
+        for (var i = 0, len = data.values.length; i < len; i++) {
+          if (i < dayCount) {
+            result.push('-');
+            continue;
+          }
+          var sum = 0;
+          for (var j = 0; j < dayCount; j++) {
+            sum += data.values[i - j][1];
+          }
+          result.push(sum / dayCount);
+        }
+        return result;
+      }
+
+      option = {
+        title : {
+          text : '${bean.stockName} - ${bean.code}',
+          left : 0
+        },
+        tooltip : {
+          trigger : 'axis',
+          axisPointer : {
+            type : 'line'
+          }
+        },
+        legend : {
+          data : [ '日K', 'MA5', 'MA10', 'MA20', 'MA30' ]
+        },
+        grid : {
+          left : '10%',
+          right : '10%',
+          bottom : '15%'
+        },
+        xAxis : {
+          type : 'category',
+          data : data.categoryData,
+          scale : true,
+          boundaryGap : false,
+          axisLine : {
+            onZero : false
+          },
+          splitLine : {
+            show : false
+          },
+          splitNumber : 20,
+          min : 'dataMin',
+          max : 'dataMax'
+        },
+        yAxis : {
+          scale : true,
+          splitArea : {
+            show : true
+          }
+        },
+        dataZoom : [ {
+          type : 'inside',
+          start : 50,
+          end : 100
+        }, {
+          show : true,
+          type : 'slider',
+          y : '90%',
+          start : 50,
+          end : 100
+        } ],
+        series : [ {
+          name : '日K',
+          type : 'candlestick',
+          data : data.values,
+          markPoint : {
+            /* label : {
+              normal : {
+                formatter : function(param) {
+                  console.log(Math.round(param.value))
+                  return param != null ? 123123 : '';
+                }
+              }
+            }, */
+            data : [{
+              name : 'highest value',
+              type : 'max',
+              valueDim : 'highest'
+            }, {
+              name : 'lowest value',
+              type : 'min',
+              valueDim : 'lowest'
+            }, {
+              name : 'average value on close',
+              type : 'average',
+              valueDim : 'close'
+            } ],
+            tooltip : {
+              formatter : function(param) {
+                return param.name + '<br>' + (param.data.coord || '');
+              }
+            }
+          },
+          markLine : {
+            symbol : [ 'none', 'none' ],
+            data : [
+            // [
+            //     {
+            //         name: 'from lowest to highest',
+            //         type: 'min',
+            //         valueDim: 'lowest',
+            //         symbol: 'circle',
+            //         symbolSize: 10,
+            //         label: {
+            //             normal: {show: false},
+            //             emphasis: {show: false}
+            //         }
+            //     },
+            //     {
+            //         type: 'max',
+            //         valueDim: 'highest',
+            //         symbol: 'circle',
+            //         symbolSize: 10,
+            //         label: {
+            //             normal: {show: false},
+            //             emphasis: {show: false}
+            //         }
+            //     }
+            // ],
+            {
+              name : 'min line on close',
+              type : 'min',
+              valueDim : 'close'
+            }, {
+              name : 'max line on close',
+              type : 'max',
+              valueDim : 'close'
+            } ]
+          }
+        }, {
+          name : 'MA5',
+          type : 'line',
+          data : calculateMA(5),
+          smooth : true,
+          lineStyle : {
+            normal : {
+              opacity : 0.5
+            }
+          }
+        }, {
+          name : 'MA10',
+          type : 'line',
+          data : calculateMA(10),
+          smooth : true,
+          lineStyle : {
+            normal : {
+              opacity : 0.5
+            }
+          }
+        }, {
+          name : 'MA20',
+          type : 'line',
+          data : calculateMA(20),
+          smooth : true,
+          lineStyle : {
+            normal : {
+              opacity : 0.5
+            }
+          }
+        }, {
+          name : 'MA30',
+          type : 'line',
+          data : calculateMA(30),
+          smooth : true,
+          lineStyle : {
+            normal : {
+              opacity : 0.5
+            }
+          }
+        },
+
+        ]
+      };
+      stockChart.setOption(option);
+    </script>
+</body>
+</html>

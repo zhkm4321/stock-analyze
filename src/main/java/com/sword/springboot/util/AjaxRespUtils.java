@@ -17,7 +17,7 @@ import com.sword.springboot.exception.ErrorInfo;
  * @version 创建时间：2016年12月8日 下午11:17:22
  */
 public class AjaxRespUtils {
-
+  
   /**
    * 渲染正常返回数据的json
    * 
@@ -53,7 +53,7 @@ public class AjaxRespUtils {
    * @return
    */
   public static String renderSuccess(Map<String, Object> data, String message) {
-    return renderSuccess(data, message, false, true);
+    return renderSuccess(data, message, false, true, true);
   }
 
   /**
@@ -65,7 +65,7 @@ public class AjaxRespUtils {
    * @return
    */
   public static String renderSuccess(Map<String, Object> data, String message, boolean nullToBlank) {
-    return renderSuccess(data, message, nullToBlank, true);
+    return renderSuccess(data, message, nullToBlank, true, true);
   }
 
   /**
@@ -81,7 +81,7 @@ public class AjaxRespUtils {
    * @return
    */
   public static String renderSuccess(Map<String, Object> data, String message, boolean nullToBlank,
-      boolean disableCircularReferenceDetect) {
+      boolean disableCircularReferenceDetect, boolean bigDecimalAsPlain) {
     Map<String, Object> result = new HashMap<String, Object>();
     result.put("success", true);
     result.put("message", message);
@@ -90,6 +90,10 @@ public class AjaxRespUtils {
     Object[] sfArr = new SerializerFeature[] {};
     if (disableCircularReferenceDetect) {
       sfArr = ArrayUtils.add(sfArr, SerializerFeature.DisableCircularReferenceDetect);
+    }
+    if (bigDecimalAsPlain) {
+      sfArr = ArrayUtils.add(sfArr, SerializerFeature.WriteBigDecimalAsPlain);
+      sfArr = ArrayUtils.add(sfArr, SerializerFeature.WriteNullNumberAsZero);
     }
     if (nullToBlank) {
       sfArr = ArrayUtils.addAll(sfArr, new Object[] { SerializerFeature.WriteNullStringAsEmpty,
