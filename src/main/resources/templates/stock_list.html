@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="keywords" content="" />
+<meta name="_csrf" content="${_csrf.token}" />
+<!-- default header name is X-CSRF-TOKEN -->
+<meta name="_csrf_header" content="${_csrf.headerName}" />
+<title>股票盘口分析</title>
+<link type="favicon" rel="shortcut icon" href="${res}/images/favicon.ico" />
+<link href="${res}/css/bootstrap.css" rel="stylesheet">
+<link href="//cdn.bootcss.com/layer/3.0.1/mobile/need/layer.min.css" rel="stylesheet">
+<link href="${res}/css/root.css" rel="stylesheet">
+<link href="${res}/css/style.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+  <!-- Start Page Loading -->
+  <div class="loading">
+    <img src="${res}/images/loading.gif" alt="loading-img">
+  </div>
+  <div id="top" class="clearfix">
+
+    <!-- Start App Logo -->
+    <div class="applogo">
+      <a href="index.html" class="logo">Stock Analyze</a>
+    </div>
+    <!-- End App Logo -->
+
+    <!-- Start Sidebar Show Hide Button -->
+    <a href="#" class="sidebar-open-button"><i class="fa fa-bars"></i></a> <a href="#"
+      class="sidebar-open-button-mobile"><i class="fa fa-bars"></i></a>
+    <!-- End Sidebar Show Hide Button -->
+
+    <!-- Start Sidepanel Show-Hide Button -->
+    <a href="#sidepanel" class="sidepanel-open-button"><i class="fa fa-outdent"></i></a>
+    <!-- End Sidepanel Show-Hide Button -->
+    [#if curuser??]
+    <!-- Start Top Right -->
+    <ul class="top-right profile_con"
+      <li class="dropdown link"><a href="#" data-toggle="dropdown"
+        class="dropdown-toggle profilebox"><img src="${res}/images/profileimg.png" alt="img"><b>${curuser.username!}</b><span
+          class="caret"></span></a>
+        <ul class="dropdown-menu dropdown-menu-list dropdown-menu-right">
+          <!-- 
+            <li role="presentation" class="dropdown-header">Profile</li>
+            <li><a href="#"><i class="fa falist fa-inbox"></i>Inbox<span
+                class="badge label-danger">4</span></a></li>
+            <li><a href="#"><i class="fa falist fa-file-o"></i>Files</a></li>
+            <li><a href="#"><i class="fa falist fa-wrench"></i>Settings</a></li>
+            <li class="divider"></li>
+             -->
+          <li><a href="lockscreen.html"><i class="fa falist fa-lock"></i> Lockscreen</a></li>
+          <li><a href="#"><i class="fa falist fa-power-off"></i> Logout</a></li>
+        </ul></li>
+    </ul>
+    <!-- End Top Right -->
+    [/#if]
+  </div>
+  <!-- END TOP -->
+  <!-- START SIDEBAR -->
+  <div class="sidebar clearfix">
+
+    <ul class="sidebar-panel nav">
+      <li class="sidetitle">MAIN</li>
+      <li><a href="/stocks/list"><span class="icon color5"><i class="fa fa-home"></i></span>股票列表<span
+          class="label label-default">2</span></a></li>
+      <li><a href="widgets.html"><span class="icon color11"><i class="fa fa-diamond"></i></span>Widgets</a></li>
+      <li><a href="calendar.html"><span class="icon color8"><i
+            class="fa fa-calendar-o"></i></span>Calendar<span class="label label-danger">NEW</span></a></li>
+      <li><a href="typography.html"><span class="icon color12"><i class="fa fa-font"></i></span>Typography</a></li>
+      <li><a href="#"><span class="icon color14"><i class="fa fa-paper-plane-o"></i></span>Extra
+          Pages<span class="caret"></span></a>
+        <ul>
+          <li><a href="social-profile.html">Social Profile</a></li>
+          <li><a href="invoice.html">Invoice<span class="label label-danger">NEW</span></a></li>
+          <li><a href="login.html">Login Page</a></li>
+        </ul></li>
+    </ul>
+  </div>
+  <!-- END SIDEBAR -->
+  <!-- START CONTENT -->
+  <div class="content">
+    <div class="row">
+      <!-- Start Panel -->
+      <div class="col-md-4">
+        <div class="panel panel-default">
+          <form class="searchform" onkeydown="if(event.keyCode==13){return false;}">
+            <input type="text" class="searchbox" placeholder="代码/名称"> <span
+              class="searchbutton"><i class="fa fa-search"></i></span>
+          </form>
+          <table
+            class="stock_table table display table-striped table-bordered table-hover table-condensed"
+            cellspacing="0" width="100%">
+            <thead>
+              <tr>
+                <th>沪深市</th>
+                <th>代码</th>
+                <th>名称</th>
+              </tr>
+            </thead>
+          </table>
+        </div>
+      </div>
+      <div class="col-md-8">
+        <div class="panel panel-default">
+          <div class="panel-title">
+            <ul class="panel-tools">
+              <li><a class="icon reload_kline"><i class="fa fa-refresh"></i></a></li>
+            </ul>
+          </div>
+          <div class="panel-body table-responsive">
+            <div id="stock_charts" class="charts_con"></div>
+          </div>
+          <form id="stock_form">
+            <input type="hidden" name="code" value="">
+            <input type="hidden" name="startDate" value="${dateRange[0]?string('yyyyMMdd')}">
+            <input type="hidden" name="endDate" value="${dateRange[1]?string('yyyyMMdd')}">
+          </form>
+        </div>
+      </div>
+      <!-- End Panel -->
+    </div>
+    <!-- End Row -->
+  </div>
+  <!-- End Content -->
+  <!-- //////////////////////////////////////////////////////////////////////////// -->
+
+
+  <!-- //////////////////////////////////////////////////////////////////////////// -->
+  <!-- START SIDEPANEL -->
+  <div role="tabpanel" class="sidepanel">
+
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs" role="tablist">
+      <li role="presentation" class="active"><a href="#today" aria-controls="today" role="tab"
+        data-toggle="tab">TODAY</a></li>
+      <li role="presentation"><a href="#tasks" aria-controls="tasks" role="tab"
+        data-toggle="tab">TASKS</a></li>
+    </ul>
+
+    <!-- Tab panes -->
+    <div class="tab-content">
+
+      <!-- Start Today -->
+      <div role="tabpanel" class="tab-pane active" id="today">
+
+        <div class="sidepanel-m-title">
+          Today <span class="left-icon"><a href="#"><i class="fa fa-refresh"></i></a></span> <span
+            class="right-icon"><a href="#"><i class="fa fa-file-o"></i></a></span>
+        </div>
+
+        <div class="gn-title">NEW</div>
+
+        <ul class="list-w-title">
+          <li><a href="#"> <span class="label label-danger">ORDER</span> <span class="date">9
+                hours ago</span>
+              <h4>New Jacket 2.0</h4> Etiam auctor porta augue sit amet facilisis. Sed libero nisi,
+              scelerisque.
+          </a></li>
+          <li><a href="#"> <span class="label label-success">COMMENT</span> <span
+              class="date">14 hours ago</span>
+              <h4>Bill Jackson</h4> Etiam auctor porta augue sit amet facilisis. Sed libero nisi,
+              scelerisque.
+          </a></li>
+          <li><a href="#"> <span class="label label-info">MEETING</span> <span class="date">at
+                2:30 PM</span>
+              <h4>Developer Team</h4> Etiam auctor porta augue sit amet facilisis. Sed libero nisi,
+              scelerisque.
+          </a></li>
+          <li><a href="#"> <span class="label label-warning">EVENT</span> <span
+              class="date">3 days left</span>
+              <h4>Birthday Party</h4> Etiam auctor porta augue sit amet facilisis. Sed libero nisi,
+              scelerisque.
+          </a></li>
+        </ul>
+
+      </div>
+      <!-- End Today -->
+
+      <!-- Start Tasks -->
+      <div role="tabpanel" class="tab-pane" id="tasks">
+
+        <div class="sidepanel-m-title">
+          To-do List <span class="left-icon"><a href="#"><i class="fa fa-pencil"></i></a></span> <span
+            class="right-icon"><a href="#"><i class="fa fa-trash"></i></a></span>
+        </div>
+
+        <div class="gn-title">TODAY</div>
+
+        <ul class="todo-list">
+          <li class="checkbox checkbox-primary"><input id="checkboxside1" type="checkbox"><label
+            for="checkboxside1">Add new products</label></li>
+
+          <li class="checkbox checkbox-primary"><input id="checkboxside2" type="checkbox"><label
+            for="checkboxside2"><b>May 12, 6:30 pm</b> Meeting with Team</label></li>
+
+          <li class="checkbox checkbox-warning"><input id="checkboxside3" type="checkbox"><label
+            for="checkboxside3">Design Facebook page</label></li>
+
+          <li class="checkbox checkbox-info"><input id="checkboxside4" type="checkbox"><label
+            for="checkboxside4">Send Invoice to customers</label></li>
+
+          <li class="checkbox checkbox-danger"><input id="checkboxside5" type="checkbox"><label
+            for="checkboxside5">Meeting with developer team</label></li>
+        </ul>
+
+        <div class="gn-title">TOMORROW</div>
+        <ul class="todo-list">
+          <li class="checkbox checkbox-warning"><input id="checkboxside6" type="checkbox"><label
+            for="checkboxside6">Redesign our company blog</label></li>
+
+          <li class="checkbox checkbox-success"><input id="checkboxside7" type="checkbox"><label
+            for="checkboxside7">Finish client work</label></li>
+
+          <li class="checkbox checkbox-info"><input id="checkboxside8" type="checkbox"><label
+            for="checkboxside8">Call Johnny from Developer Team</label></li>
+
+        </ul>
+      </div>
+      <!-- End Tasks -->
+    </div>
+
+  </div>
+  <script type="text/javascript" src="https://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
+  <script src="//cdn.bootcss.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+  <!-- ================================================
+    Plugin.js - Some Specific JS codes for Plugin Settings
+    ================================================ -->
+  <script type="text/javascript" src="${res}/js/plugins.js"></script>
+  <!-- ================================================
+    Bootstrap Select
+    ================================================ -->
+  <script type="text/javascript" src="${res}/js/bootstrap-select/bootstrap-select.js"></script>
+  <!-- ================================================
+    Bootstrap Toggle
+    ================================================ -->
+  <script type="text/javascript" src="${res}/js/bootstrap-toggle/bootstrap-toggle.min.js"></script>
+  <!-- ================================================
+    Data Tables
+    ================================================ -->
+  <script type="text/javascript" src="${res}/js/datatables/datatables.min.js"></script>
+  <!-- ================================================
+    Moment.js
+    ================================================ -->
+  <script type="text/javascript" src="${res}/js/moment/moment.min.js"></script>
+  <script type="text/javascript" src="${res}/js/echarts.min.js"></script>
+  <script src="//cdn.bootcss.com/layer/3.0.1/mobile/layer.min.js"></script>
+  <script type="text/javascript" src="${res}/js/global.js"></script>
+  <script type="text/javascript">
+    var stockChart;
+    //初始化表格
+    var table = $(".stock_table").dataTable({
+      "pageLength": 20,
+      "lengthMenu": [ 10, 20, 50, 100, 200 ],//默认每页数量
+      "lengthChange" : true, //改变每页显示数据数量
+      "filter" : true, //过滤功能
+      "ordering": true,
+      "searchDelay": 650,
+      "info" : true,//页脚信息
+      "stateSave" : true,
+      "retrieve" : true,
+      "searching": false,
+      "processing" : true,
+      "serverSide" : true,
+      "ajax" : function(data, callback, settings){
+          //封装请求参数
+          var param = {};
+          param.rows = data.length;//页面显示记录条数，在页面显示每页显示多少项的时候
+          param.page = (data.start / data.length)+1;//当前页码
+          var searchStr = $(".searchbox").val();
+          if(searchStr!=""){
+            param.searchString = searchStr;
+          }
+          var columns = new Array();
+          var orders = new Array();
+          for(var i=0; i<data.order.length; i++){
+            columns.push(data.columns[data.order[i].column].data);
+            orders.push(data.order[i].dir);
+          }
+          param.columns = columns.join(",");
+          param.orders = orders.join(",");
+          //ajax请求数据
+          var token = $("meta[name='_csrf']").attr("content");
+          var header = $("meta[name='_csrf_header']").attr("content");
+          $(document).ajaxSend(function(e, xhr, options) {
+            xhr.setRequestHeader(header, token);
+          });
+          $.ajax({
+              type: "POST",
+              url: "/stocks/list",
+              cache: false,  //禁用缓存
+              data: param,  //传入组装的参数
+              dataType: "json",
+              success: function (result) {
+                if(result.success){
+                  var data = result.data;
+                  //封装返回数据
+                  var returnData = {};
+                  returnData.draw = data.draw;//这里直接自行返回了draw计数器,应该由后台返回
+                  returnData.recordsTotal = data.pageInfo.total;//返回数据全部记录
+                  returnData.recordsFiltered = data.pageInfo.total;//后台不实现过滤功能，每次查询均视作全部结果
+                  returnData.data = data.pageInfo.list;//返回的数据列表
+                  //调用DataTables提供的callback方法，代表数据已封装完成并传回DataTables进行渲染
+                  //此时的数据需确保正确无误，异常判断应在执行此回调前自行处理完毕
+                  callback(returnData);
+                }
+              }
+          });
+      },
+      "fnDrawCallback": function (oSettings) {
+          if(oSettings.aoData.length==1){
+            $(".stock_table tbody tr td").click();
+          }
+      },
+      "oLanguage" : {
+          "oAria": {
+              "sSortAscending": ": 升序排列",
+              "sSortDescending": ": 降序排列"
+          },
+          "oPaginate": {
+              "sFirst": "首页",
+              "sLast": "末页",
+              "sNext": "下页",
+              "sPrevious": "上页"
+          },
+          "sEmptyTable": "没有相关记录",
+          "sInfo": "第 _START_ 到 _END_ 条记录，共 _TOTAL_ 条",
+          "sInfoEmpty": "第 0 到 0 条记录，共 0 条",
+          "sInfoFiltered": "(从 _MAX_ 条记录中检索)",
+          "sInfoPostFix": "",
+          "sDecimal": "",
+          "sThousands": ",",
+          "sLengthMenu": "每页显示条数: _MENU_",
+          "sLoadingRecords": "正在载入...",
+          "sProcessing": "正在载入...",
+          "sSearch": "搜索:",
+          "sSearchPlaceholder": "",
+          "sUrl": "",
+          "sZeroRecords": "没有相关记录"
+      },
+      //列表表头字段
+      "columns": [
+        { "data": "stockExchange" },
+        { "data": "code" },
+        { "data": "stockName" }
+      ]
+    }).api();
+    //此处需调用api()方法,否则返回的是JQuery对象而不是DataTables的API对象
+    $(document).on("click",".stock_table tbody tr",function(e){
+      var code = $(this).find("td:eq(1)").text();
+      $("#stock_form input[name=code]").val(code);
+      stockChart = showKline(code);
+    });
+    $(document).on("click", ".reload_kline", function(){
+      var code=$("#stock_form input[name=code]").val();
+      refreshKlineData(code, function(){
+        stockChart.clear();
+        stockChart.dispose();
+        stockChart = showKline(code);
+      })
+    });
+    $(document).on("click",".searchbutton",function(e){
+      table.ajax.reload();
+    });
+    $(document).on("keydown",".searchbox",function(event){
+      if(event.keyCode==13){
+        $(".searchbutton").click();
+      }
+    });
+    </script>
+</body>
+</html>

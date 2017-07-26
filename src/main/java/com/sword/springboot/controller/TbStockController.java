@@ -24,11 +24,11 @@
 
 package com.sword.springboot.controller;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -51,9 +51,10 @@ import com.github.pagehelper.PageInfo;
 import com.sword.springboot.model.TbStocks;
 import com.sword.springboot.service.TbStocksService;
 import com.sword.springboot.util.AjaxRespUtils;
-import com.sword.springboot.util.DateUtil;
 import com.sword.springboot.util.HttpClientUtils;
+import com.sword.springboot.util.LoggerUtils;
 import com.sword.springboot.util.RegxUtils;
+import com.sword.springboot.util.StringUtils;
 
 /**
  * @author liuzh
@@ -69,16 +70,7 @@ public class TbStockController {
   @GetMapping
   public ModelAndView listAll(TbStocks stock) {
     ModelAndView result = new ModelAndView("index");
-    List<TbStocks> stockList = stockSvc.selectByExample(stock);
-    result.addObject("pageInfo", new PageInfo<TbStocks>(stockList));
-    result.addObject("queryBean", stock);
-    return result;
-  }
-
-  @PostMapping
-  public ModelAndView postListAll(TbStocks stock) {
-    ModelAndView result = new ModelAndView("index");
-    List<TbStocks> stockList = stockSvc.selectByExample(stock);
+    List<TbStocks> stockList = stockSvc.selectByExample(stock, null, null);
     result.addObject("pageInfo", new PageInfo<TbStocks>(stockList));
     result.addObject("queryBean", stock);
     return result;
@@ -153,43 +145,56 @@ public class TbStockController {
           }
         }
       }
+      int count = 0;
       for (Iterator<TbStocks> iterator = stockList.iterator(); iterator.hasNext();) {
         TbStocks stocks = (TbStocks) iterator.next();
         stockSvc.saveOrUpdate(stocks);
+        count++;
       }
+      LoggerUtils.info(getClass(), "共刷新" + count + "条记录");
     } catch (Exception e) {
       e.printStackTrace();
     }
     return AjaxRespUtils.renderSuccess("刷新成功");
+
   }
-  @GetMapping("/detail/{code}")
-  public ModelAndView showDetail(@PathVariable String code){
-    ModelAndView result = new ModelAndView("detail");
-    TbStocks stock = stockSvc.redisGetStock(code);
-    result.addObject("bean", stock);
+
+  @GetMapping("/list")
+  public ModelAndView stockList(TbStocks stock) {
+    ModelAndView result = new ModelAndView("stock_list");
+    List<TbStocks> stockList = stockSvc.selectByExample(stock, null, null);
+    result.addObject("pageInfo", new PageInfo<TbStocks>(stockList));
+    result.addObject("queryBean", stock);
     Date nowDate = new Date();
     Calendar cal = new GregorianCalendar();
     cal.setTime(nowDate);
-    cal.add(Calendar.DAY_OF_YEAR, -60);
-    Date[] dateRange = new Date[]{cal.getTime(), nowDate};
-    result.addObject("queryBean", dateRange);
+    cal.add(Calendar.DAY_OF_YEAR, -120);
+    Date[] dateRange = new Date[] { cal.getTime(), nowDate };
+    result.addObject("dateRange", dateRange);
     return result;
   }
-  
-  @PostMapping("/detail/{code}")
-  public ModelAndView postDetail(@PathVariable String code, String startDate, String endDate){
-    ModelAndView result = new ModelAndView("detail");
-    TbStocks stock = stockSvc.redisGetStock(code);
-    result.addObject("bean", stock);
-    Date[] dateRange = new Date[2];
+
+  @PostMapping("/list")
+  @ResponseBody
+  public String postStockList(TbStocks stock, String searchString, String columns, String orders) {
+    HashMap<String, Object> result = new HashMap<String, Object>();
     try {
-      dateRange[0] = DateUtil.sdf2.parse(startDate);
-      dateRange[1] = DateUtil.sdf2.parse(endDate);
-    } catch (ParseException e) {
-      e.printStackTrace();
+      if(StringUtils.isNotBlank(searchString)){
+        Long.parseLong(searchString);
+        if(null==stock.getCode()){
+          stock.setCode(searchString);
+        }
+      }
+    } catch (NumberFormatException e) {
+      if(null==stock.getStockName()){
+        stock.setStockName(searchString);
+      }
     }
-    result.addObject("queryBean", dateRange);
-    return result;
+    List<TbStocks> stockList = stockSvc.selectByExample(stock, columns, orders);
+    result.put("pageInfo", new PageInfo<TbStocks>(stockList));
+    result.put("queryBean", stock);
+    
+    return AjaxRespUtils.renderSuccess(result, "获取成功");
   }
 
 }

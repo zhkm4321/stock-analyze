@@ -1,0 +1,14 @@
+2017-07-26 11:03:44.415 [main] ERROR o.s.boot.SpringApplication -Application startup failed
+java.lang.IllegalStateException: No remote URL specified
+	at org.springframework.util.Assert.state(Assert.java:70)
+	at org.springframework.boot.devtools.RemoteUrlPropertyExtractor.onApplicationEvent(RemoteUrlPropertyExtractor.java:50)
+	at org.springframework.boot.devtools.RemoteUrlPropertyExtractor.onApplicationEvent(RemoteUrlPropertyExtractor.java:41)
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.invokeListener(SimpleApplicationEventMulticaster.java:167)
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.multicastEvent(SimpleApplicationEventMulticaster.java:139)
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.multicastEvent(SimpleApplicationEventMulticaster.java:122)
+	at org.springframework.boot.context.event.EventPublishingRunListener.environmentPrepared(EventPublishingRunListener.java:74)
+	at org.springframework.boot.SpringApplicationRunListeners.environmentPrepared(SpringApplicationRunListeners.java:54)
+	at org.springframework.boot.SpringApplication.prepareEnvironment(SpringApplication.java:325)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:296)
+	at org.springframework.boot.devtools.RemoteSpringApplication.run(RemoteSpringApplication.java:62)
+	at org.springframework.boot.devtools.RemoteSpringApplication.main(RemoteSpringApplication.java:105)

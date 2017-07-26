@@ -9,6 +9,6 @@ public class HomeController {
 
   @RequestMapping({ "/index", "/" })
   public String index(ModelMap model) {
-    return "redirect:/stocks";
+    return "redirect:/stocks/list";
   }
 }

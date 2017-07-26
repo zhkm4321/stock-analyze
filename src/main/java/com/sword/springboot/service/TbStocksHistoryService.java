@@ -118,6 +118,19 @@ public class TbStocksHistoryService {
     return list;
   }
 
+  private void redisClearHistory(String code) {
+    Jedis jedis = null;
+    try {
+      jedis = RedisUtils.getJedis();
+      String stockKey = "code_" + code;
+      jedis.zremrangeByScore(stockKey.getBytes(), 0, dateScore(new Date()));
+    } catch (Exception e) {
+      LoggerUtils.error(getClass(), "保存到redis失败", e);
+    } finally {
+      RedisUtils.closeConn(jedis);
+    }
+  }
+
   private Double dateScore(Date date) {
     return Double.parseDouble(DateUtil.getDateStr(date, "yyyyMMDD"));
   }
@@ -133,4 +146,17 @@ public class TbStocksHistoryService {
     saveTh.setPriority(Thread.MIN_PRIORITY);
     saveTh.start();
   }
+
+  /**
+   * 刷新股票历史k线记录
+   * @param code
+   */
+  public void clearKlineData(String code) {
+    Example example = new Example(TbStocksHistory.class);
+    Example.Criteria criteria = example.createCriteria();
+    criteria.andEqualTo("code", code);
+    stockHistoryMapper.deleteByExample(example);
+    redisClearHistory(code);
+  }
+
 }

@@ -3,6 +3,8 @@ package com.sword.springboot.service;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -24,6 +26,7 @@ public class KlineService {
   @Autowired
   private TbStocksService stockSvc;
   
+  @Autowired
   private TbStocksHistoryService historySvc;
 
   /**
@@ -36,6 +39,18 @@ public class KlineService {
    */
   public List<TbStocksHistory> getStockDailyHistory(String code, String startDate, String endDate) {
     List<TbStocksHistory> hisList = historySvc.getDaliyHistoryFromCache(code, startDate, endDate);
+    Collections.sort(hisList,new Comparator<TbStocksHistory>() {
+      @Override
+      public int compare(TbStocksHistory o1, TbStocksHistory o2) {
+        long range = (o1.getJysj().getTime()-o2.getJysj().getTime());
+        if(range<Integer.MIN_VALUE){
+          return Integer.MIN_VALUE;
+        }else if(range>Integer.MAX_VALUE){
+          return Integer.MAX_VALUE;
+        }
+        return (int) (o1.getJysj().getTime()-o2.getJysj().getTime());
+      }
+    });
     if(CollectionUtils.isEmpty(hisList)){
       hisList = cacheDaliyHistory(code, startDate, endDate);
     }
@@ -73,6 +88,9 @@ public class KlineService {
           TbStocksHistory his = new TbStocksHistory(stock.getCode(), DateUtil.sdf.parse(cells[0]), getBD(cells[3]), getBD(cells[4]),
               getBD(cells[5]), getBD(cells[6]), getBD(cells[7]), getBD(cells[8]), getBD(cells[9]), getBD(cells[10]),
               getBD(cells[11]), getBD(cells[12]), getBD(cells[13]), getBD(cells[14]), getBD(cells[15]));
+          if(his.getSpj().doubleValue()==0){
+            continue;
+          }
           hisList.add(his);
         } catch (ParseException e) {
           e.printStackTrace();
@@ -107,5 +125,13 @@ public class KlineService {
    */
   public List<TbStocksHistory> getStockWeeklyHistory(String code, String startDate, String endDate) {
     return null;
+  }
+
+  /**
+   * 刷新股票的k线数据
+   * @param code
+   */
+  public void refreshStockKline(String code) {
+    historySvc.clearKlineData(code);
   }
 }

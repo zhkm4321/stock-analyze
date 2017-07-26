@@ -10,33 +10,36 @@ import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.PageHelper;
 import com.sword.springboot.mapper.TbStocksMapper;
 import com.sword.springboot.model.TbStocks;
-import com.sword.springboot.model.TbStocksExample;
 import com.sword.springboot.util.LoggerUtils;
 import com.sword.springboot.util.RedisUtils;
+import com.sword.springboot.util.SerializeUtil;
 import com.sword.springboot.util.StringUtils;
 
 import redis.clients.jedis.Jedis;
+import tk.mybatis.mapper.entity.Example;
+import tk.mybatis.mapper.entity.Example.Criteria;
 
 @Service
-public class TbStocksService {
+public class TbStocksService extends BaseService {
 
   private final String STOCKS = "STOCKS";
 
   @Autowired
   private TbStocksMapper stockMapper;
 
-  public List<TbStocks> selectByExample(TbStocks bean) {
+  public List<TbStocks> selectByExample(TbStocks bean, String columns, String orders) {
     if (bean.getPage() != null && bean.getRows() != null) {
       PageHelper.startPage(bean.getPage(), bean.getRows());
     }
-    TbStocksExample example = new TbStocksExample();
-    TbStocksExample.Criteria criteria = example.createCriteria();
-    if(StringUtils.isNotBlank(bean.getCode())){
-      criteria.andCodeLike(bean.getCode());
+    Example example = new Example(TbStocks.class);
+    Criteria criteria = example.createCriteria();
+    if (StringUtils.isNotBlank(bean.getCode())) {
+      criteria.andLike("code", "%" + bean.getCode() + "%");
     }
-    if(StringUtils.isNotBlank(bean.getStockName())){
-      criteria.andStockNameLike(bean.getStockName());
+    if (StringUtils.isNotBlank(bean.getStockName())) {
+      criteria.andLike("stockName", "%" + bean.getStockName() + "%");
     }
+    orderHandler(example, columns, orders);
     return stockMapper.selectByExample(example);
   }
 
@@ -52,17 +55,17 @@ public class TbStocksService {
     Jedis jedis = null;
     try {
       jedis = RedisUtils.getJedis();
-      String stockKey = bean.getStockExchange() + bean.getCode();
+      String stockKey = bean.getCode();
       String stockJson = jedis.hget(STOCKS, stockKey);
       if (StringUtils.isBlank(stockJson)) {
         stockMapper.insert(bean);
-        jedis.hset(STOCKS, stockKey, JSON.toJSONString(bean));
+        jedis.hset(STOCKS.getBytes(), stockKey.getBytes(), SerializeUtil.serialize(bean));
       } else {
         TbStocks cacheBean = JSON.parseObject(stockJson, TbStocks.class);
         bean.setId(cacheBean.getId());
         stockMapper.updateByPrimaryKey(bean);
-        jedis.hset(STOCKS, stockKey, JSON.toJSONString(bean));
       }
+      jedis.hset(STOCKS.getBytes(), stockKey.getBytes(), SerializeUtil.serialize(bean));
     } catch (Exception e) {
       e.printStackTrace();
     } finally {
@@ -82,8 +85,8 @@ public class TbStocksService {
     Jedis jedis = null;
     try {
       jedis = RedisUtils.getJedis();
-      String stockKey = "code_" + bean.getCode();
-      jedis.hset(STOCKS, stockKey, JSON.toJSONString(bean));
+      String stockKey = bean.getCode();
+      jedis.hset(STOCKS.getBytes(), stockKey.getBytes(), SerializeUtil.serialize(bean));
     } catch (Exception e) {
       LoggerUtils.error(getClass(), "保存到redis失败", e);
     } finally {
@@ -95,9 +98,9 @@ public class TbStocksService {
     Jedis jedis = null;
     try {
       jedis = RedisUtils.getJedis();
-      String stockKey = "code_"+code;
-      String stockJson = jedis.hget(STOCKS, stockKey);
-      return JSON.parseObject(stockJson, TbStocks.class);
+      String stockKey = code;
+      byte[] stockData = jedis.hget(STOCKS.getBytes(), stockKey.getBytes());
+      return (TbStocks) SerializeUtil.unserialize(stockData);
     } catch (Exception e) {
       LoggerUtils.error(getClass(), "保存到redis失败", e);
     } finally {

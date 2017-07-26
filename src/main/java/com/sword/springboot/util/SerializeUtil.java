@@ -17,7 +17,7 @@ public class SerializeUtil {
       byte[] bytes = baos.toByteArray();
       return bytes;
     } catch (Exception e) {
-
+      LoggerUtils.error(SerializeUtil.class, "序列化对象失败",e);
     }
     return null;
   }

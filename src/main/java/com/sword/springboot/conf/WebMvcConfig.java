@@ -28,8 +28,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
+import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
+import org.springframework.boot.web.servlet.ErrorPage;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -42,6 +46,7 @@ import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver;
 
+import com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter4;
 import com.sword.springboot.interceptor.WebContextInterceptor;
 
 /**
@@ -88,6 +93,13 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
     supportedMediaTypes.add(MediaType.TEXT_MARKDOWN);
     messageConverter.setSupportedMediaTypes(supportedMediaTypes);
     converters.add(messageConverter);
+
+    FastJsonHttpMessageConverter4 fastjsonConvert = new FastJsonHttpMessageConverter4();
+
+    List<MediaType> allMediaTypes = new ArrayList<>();
+    allMediaTypes.add(MediaType.ALL);
+    fastjsonConvert.setSupportedMediaTypes(allMediaTypes);
+    converters.add(fastjsonConvert);
   }
 
   @Bean
@@ -95,5 +107,18 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
     HttpSessionCsrfTokenRepository repository = new HttpSessionCsrfTokenRepository();
     repository.setHeaderName("X-XSRF-TOKEN");
     return repository;
+  }
+
+  @Bean
+  public EmbeddedServletContainerCustomizer containerCustomizer() {
+    return new EmbeddedServletContainerCustomizer() {
+      @Override
+      public void customize(ConfigurableEmbeddedServletContainer container) {
+        ErrorPage error401Page = new ErrorPage(HttpStatus.UNAUTHORIZED, "/401.html");
+        ErrorPage error404Page = new ErrorPage(HttpStatus.NOT_FOUND, "/404.html");
+        ErrorPage error500Page = new ErrorPage(HttpStatus.INTERNAL_SERVER_ERROR, "/500.html");
+        container.addErrorPages(error401Page, error404Page, error500Page);
+      }
+    };
   }
 }

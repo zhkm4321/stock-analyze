@@ -3,6 +3,7 @@ package com.sword.springboot.mapper.thread;
 import java.util.Iterator;
 import java.util.List;
 
+import com.sword.springboot.util.LoggerUtils;
 import com.sword.springboot.util.ReflectionUtil;
 import com.sword.springboot.util.SAMapper;
 
@@ -33,6 +34,8 @@ public class SyncDBOperatThread<T> implements Runnable {
 
   @Override
   public void run() {
+    int updateCount = 0;
+    int insertCount = 0;
     for (Iterator<T> it = list.iterator(); it.hasNext();) {
       T entity = (T) it.next();
       T record = null;
@@ -54,10 +57,13 @@ public class SyncDBOperatThread<T> implements Runnable {
           criteria.andEqualTo(PK[i], ReflectionUtil.getFieldValue(clazz, entity, PK[i]));
         }
         mapper.updateByExample(entity, example);
+        updateCount++;
       } else {
         mapper.insert(entity);
+        insertCount++;
       }
     }
+    LoggerUtils.info(getClass(), "更新"+updateCount+",新增"+insertCount);
   }
 
 }

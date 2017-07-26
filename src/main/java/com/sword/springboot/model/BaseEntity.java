@@ -24,6 +24,8 @@
 
 package com.sword.springboot.model;
 
+import java.io.Serializable;
+
 import javax.persistence.Transient;
 
 /**
@@ -32,7 +34,12 @@ import javax.persistence.Transient;
  * @author liuzh
  * @since 2016-01-31 21:42
  */
-public class BaseEntity {
+public class BaseEntity implements Serializable{
+
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 3199228570482812255L;
 
   @Transient
   private Integer page = 1;
